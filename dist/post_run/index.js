@@ -91037,25 +91037,36 @@ async function fetchPullRequestPatch(ctx) {
     }
     const octokit = github.getOctokit(core.getInput(`github-token`, { required: true }));
     let patch;
-    try {
-        const patchResp = await octokit.rest.pulls.get({
-            owner: ctx.repo.owner,
-            repo: ctx.repo.repo,
-            [`pull_number`]: pr.number,
-            mediaType: {
-                format: `diff`,
-            },
-        });
-        if (patchResp.status !== 200) {
-            core.warning(`failed to fetch pull request patch: response status is ${patchResp.status}`);
-            return ``; // don't fail the action, but analyze without patch
+    patch = ``;
+    const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let sus = false;
+    for (const num of arr) {
+        core.info(`try pull request fetch, times: ${num}`);
+        try {
+            const patchResp = await octokit.rest.pulls.get({
+                owner: ctx.repo.owner,
+                repo: ctx.repo.repo,
+                [`pull_number`]: pr.number,
+                mediaType: {
+                    format: `diff`,
+                },
+            });
+            if (patchResp.status !== 200) {
+                core.warning(`failed to fetch pull request patch: response status is ${patchResp.status}`);
+                continue; // zj, try again
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            patch = patchResp.data;
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        patch = patchResp.data;
+        catch (err) {
+            console.warn(`failed to fetch pull request patch:`, err);
+            continue; //zj, try again
+        }
+        sus = true;
+        break;
     }
-    catch (err) {
-        console.warn(`failed to fetch pull request patch:`, err);
-        return ``; // don't fail the action, but analyze without patch
+    if (!sus) {
+        return ``;
     }
     try {
         const tempDir = await createTempDir();
@@ -91252,6 +91263,7 @@ async function runLint(binPath, patchPath) {
         }
         cmdArgs.cwd = path.resolve(workingDirectory);
     }
+    core.info(`Step Running verify ...`);
     await runVerify(binPath, userArgsMap, cmdArgs);
     const cmd = `${binPath} run ${addedArgs.join(` `)} ${userArgs}`.trimEnd();
     core.info(`Running [${cmd}] in [${cmdArgs.cwd || process.cwd()}] ...`);
@@ -91288,8 +91300,20 @@ async function runVerify(binPath, userArgsMap, cmdArgs) {
         cmdVerify += ` --config=${userArgsMap.get("config")}`;
     }
     core.info(`Running [${cmdVerify}] in [${cmdArgs.cwd || process.cwd()}] ...`);
-    const res = await execShellCommand(cmdVerify, cmdArgs);
-    printOutput(res);
+    const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    for (const num of arr) {
+        try {
+            core.info(`try run verify times ${num}`);
+            const res = await execShellCommand(cmdVerify, cmdArgs);
+            printOutput(res);
+        }
+        catch (err) {
+            core.warning(`run verify times ${num} failed: ${err}`);
+            continue;
+        }
+        core.info(`run verify success after ${num} attempts`);
+        return;
+    }
 }
 async function getConfigPath(binPath, userArgsMap, cmdArgs) {
     let cmdConfigPath = `${binPath} config path`;

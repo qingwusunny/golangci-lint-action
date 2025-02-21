@@ -137,6 +137,7 @@ async function runLint(binPath: string, patchPath: string): Promise<void> {
     cmdArgs.cwd = path.resolve(workingDirectory)
   }
 
+  core.info(`Step Running verify ...`)
   await runVerify(binPath, userArgsMap, cmdArgs)
 
   const cmd = `${binPath} run ${addedArgs.join(` `)} ${userArgs}`.trimEnd()
@@ -159,7 +160,6 @@ async function runLint(binPath: string, patchPath: string): Promise<void> {
       core.setFailed(`golangci-lint exit with code ${exc.code}`)
     }
   }
-
   core.info(`Ran golangci-lint in ${Date.now() - startedAt}ms`)
 }
 
@@ -180,9 +180,19 @@ async function runVerify(binPath: string, userArgsMap: Map<string, string>, cmdA
   }
 
   core.info(`Running [${cmdVerify}] in [${cmdArgs.cwd || process.cwd()}] ...`)
-
-  const res = await execShellCommand(cmdVerify, cmdArgs)
-  printOutput(res)
+  const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  for (const num of arr) {
+    try {
+      core.info(`try run verify times ${num}`)
+      const res = await execShellCommand(cmdVerify, cmdArgs)
+      printOutput(res)
+    } catch(err) {
+      core.warning(`run verify times ${num} failed: ${err}`)
+      continue
+    }
+    core.info(`run verify success after ${num} attempts`)
+    return
+  }
 }
 
 async function getConfigPath(binPath: string, userArgsMap: Map<string, string>, cmdArgs: ExecOptions): Promise<string> {

@@ -20,6 +20,10 @@ The action runs [golangci-lint](https://github.com/golangci/golangci-lint) and r
 
 If you value it, consider supporting us, we appreciate it! :heart:
 
+## Dev
+
+modify ./src/\*.ts and run `npm run build` to generate ./dst/\*.js
+
 ## How to use
 
 We recommend running this action in a job separate from other jobs (`go test`, etc.)

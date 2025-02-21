@@ -30,7 +30,6 @@
     "@actions/github": "^6.0.0",
     "@actions/http-client": "^2.2.3",
     "@actions/tool-cache": "^2.0.2",
-    "@types/node": "^22.13.4",
     "@types/semver": "^7.5.8",
     "@types/tmp": "^0.2.6",
     "@types/which": "^3.0.4",
@@ -38,6 +37,7 @@
     "which": "^5.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.13.4",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
     "@vercel/ncc": "^0.38.3",
