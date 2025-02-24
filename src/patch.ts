@@ -46,26 +46,37 @@ async function fetchPullRequestPatch(ctx: Context): Promise<string> {
   const octokit = github.getOctokit(core.getInput(`github-token`, { required: true }))
 
   let patch: string
-  try {
-    const patchResp = await octokit.rest.pulls.get({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      [`pull_number`]: pr.number,
-      mediaType: {
-        format: `diff`,
-      },
-    })
+  patch = ``
+  const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  let sus = false
+  for (const num of arr) {
+    core.info(`try pull request fetch, times: ${num}`)
+    try {
+      const patchResp = await octokit.rest.pulls.get({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        [`pull_number`]: pr.number,
+        mediaType: {
+          format: `diff`,
+        },
+      })
 
-    if (patchResp.status !== 200) {
-      core.warning(`failed to fetch pull request patch: response status is ${patchResp.status}`)
-      return `` // don't fail the action, but analyze without patch
+      if (patchResp.status !== 200) {
+        core.warning(`failed to fetch pull request patch: response status is ${patchResp.status}`)
+        continue // zj, try again
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      patch = patchResp.data as any
+    } catch (err) {
+      console.warn(`failed to fetch pull request patch:`, err)
+      continue //zj, try again
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    patch = patchResp.data as any
-  } catch (err) {
-    console.warn(`failed to fetch pull request patch:`, err)
-    return `` // don't fail the action, but analyze without patch
+    sus = true
+    break
+  }
+  if (!sus) {
+    return ``
   }
 
   try {
